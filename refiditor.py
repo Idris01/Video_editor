@@ -1,7 +1,9 @@
+import os
 import sys
 from moviepy.editor import VideoFileClip, concatenate_videoclips
 from pathlib import Path
 from datetime import datetime
+
 
 from conf import OUTPUT_DIR
 
@@ -12,6 +14,10 @@ def new_location():
 	"""
 	time=datetime.now()
 	new_file_name="movieditor_%d_%d%d%d.mp4" % (time.year,time.day,time.minute,time.second)
+	
+	if not OUTPUT_DIR.exists():
+	  os.makedirs(OUTPUT_DIR)
+	
 	return str(Path.joinpath(OUTPUT_DIR,new_file_name))
 
 
@@ -39,7 +45,7 @@ def rotate(clip,angle):
 	vid.close()
 
 
-def cut(clip,start,end):
+def cut(clip,start,end=None):
 	"""
 	Cut off part of a given video clip
 
@@ -48,14 +54,16 @@ def cut(clip,start,end):
 
 	"""
 	vid=VideoFileClip(clip)
-	vid=vid.resize(newsize=(vid.size[1],vid.size[0]))
+	# vid=vid.resize(newsize=(vid.size[1],vid.size[0]))
 	clip_time=int(vid.duration)
 	clip_end="%-2d:%-2d:%-2d" % (clip_time/3600,clip_time/60,clip_time%60)
-
 	part1=vid.subclip("00:00:00",start)
-	part2=vid.subclip(end,clip_end)
-
-	output=concatenate_videoclips([part1,part2])
+	
+	if end:
+	  part2=vid.subclip(end,clip_end)
+	  output=concatenate_videoclips([part1,part2])
+	else:
+	  output=part1
 
 	save_location=new_location()
 	output.write_videofile(save_location)
@@ -71,7 +79,10 @@ def invert_size(clip):
 	vid.close()
 
 
-
+def crop(clip, size):
+  vid=VideoFileClip(clip)
+  x, y=vid.size
+  
 def hardCoded():
 	v=VideoFileClip(sys.argv[1])
 	duration=str(v.duration).split(".")
